@@ -1,0 +1,331 @@
+// Prisma schema for HR SaaS Platform
+// Documentation: hr-saas-technical-spec.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+// 用户角色
+enum Role {
+  PLATFORM_ADMIN // 平台管理员
+  COMPANY_ADMIN // 企业管理员
+}
+
+// 用户状态
+enum UserStatus {
+  ACTIVE // 正常
+  DISABLED // 禁用
+}
+
+// 公司状态
+enum CompanyStatus {
+  ACTIVE // 启用
+  INACTIVE // 停用
+}
+
+// 项目状态
+enum ProjectStatus {
+  ACTIVE // 启用
+  INACTIVE // 停用
+}
+
+// 员工状态
+enum EmployeeStatus {
+  PENDING // 待上岗（新录入，还未分配项目）
+  ACTIVE // 在职（正常在岗）
+  PENDING_EXIT // 离职待支付（已提交离职，等待最后一笔薪资发放）
+  RESIGNED // 离职
+  FIRED // 辞退
+  DISMISSED // 开除
+}
+
+// 账户状态
+enum AccountStatus {
+  ACTIVE // 正常
+  FROZEN // 冻结
+}
+
+// 充值单状态
+enum RechargeStatus {
+  PENDING // 待到账
+  COMPLETED // 已到账
+}
+
+// 交易类型
+enum TransactionType {
+  RECHARGE // 充值
+  PAYROLL // 发薪
+  REFUND // 退款
+}
+
+// 资金方向
+enum TransactionDirection {
+  IN // 入账
+  OUT // 出账
+}
+
+// 发薪单状态
+enum PayrollOrderStatus {
+  DRAFT // 草稿（已创建，未验证）
+  PENDING_VERIFY // 待验证（等待支付密码确认）
+  PROCESSING // 处理中（验证通过，执行中）
+  PAID // 已完成（全部成功）
+  FAILED // 失败（全部失败）
+  PARTIAL // 部分成功
+}
+
+// 发薪明细状态
+enum PayrollDetailStatus {
+  PENDING // 待处理
+  SUCCESS // 成功
+  FAILED // 失败
+}
+
+// ============================================
+// Models
+// ============================================
+
+// 用户账号表
+model User {
+  id              BigInt     @id @default(autoincrement())
+  tenantId        BigInt?    @map("tenant_id") // 所属公司 ID；平台管理员为 null
+  username        String     @unique @db.VarChar(64)
+  password        String     @db.VarChar(128) // bcrypt 加密
+  paymentPassword String?    @map("payment_password") @db.VarChar(128) // 支付密码（bcrypt 加密）
+  role            Role       @default(COMPANY_ADMIN)
+  realName        String?    @map("real_name") @db.VarChar(32)
+  phone           String?    @db.VarChar(20)
+  status          UserStatus @default(ACTIVE)
+  lastLoginAt     DateTime?  @map("last_login_at")
+  loginFailCount  Int        @default(0) @map("login_fail_count")
+  lockedUntil     DateTime?  @map("locked_until")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  company          Company?            @relation(fields: [tenantId], references: [id])
+  createdCompanies Company[]           @relation("CompanyCreator")
+  projects         Project[]
+  employees        Employee[]
+  rechargeOrders   RechargeOrder[]
+  transactions     TransactionRecord[]
+  payrollOrders    PayrollOrder[]
+
+  @@map("users")
+}
+
+// 公司表
+model Company {
+  id           BigInt        @id @default(autoincrement())
+  name         String        @db.VarChar(128)
+  shortName    String?       @map("short_name") @db.VarChar(64)
+  status       CompanyStatus @default(ACTIVE)
+  contactName  String?       @map("contact_name") @db.VarChar(32)
+  contactPhone String?       @map("contact_phone") @db.VarChar(20)
+  contactEmail String?       @map("contact_email") @db.VarChar(128)
+  address      String?       @db.VarChar(256)
+  createdBy    BigInt?       @map("created_by")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  creator        User?               @relation("CompanyCreator", fields: [createdBy], references: [id])
+  users          User[]
+  projects       Project[]
+  employees      Employee[]
+  account        Account?
+  rechargeOrders RechargeOrder[]
+  transactions   TransactionRecord[]
+  payrollOrders  PayrollOrder[]
+
+  @@map("companies")
+}
+
+// 项目表
+model Project {
+  id                  BigInt        @id @default(autoincrement())
+  tenantId            BigInt        @map("tenant_id")
+  name                String        @db.VarChar(128)
+  capacity            Int? // 项目人数上限
+  siteManager         String?       @map("site_manager") @db.VarChar(32)
+  siteManagerPhone    String?       @map("site_manager_phone") @db.VarChar(20)
+  financeManager      String?       @map("finance_manager") @db.VarChar(32)
+  financeManagerPhone String?       @map("finance_manager_phone") @db.VarChar(20)
+  status              ProjectStatus @default(ACTIVE)
+  qrCodeUrl           String?       @map("qr_code_url") @db.VarChar(512)
+  qrCodeToken         String?       @map("qr_code_token") @db.VarChar(128)
+  createdBy           BigInt?       @map("created_by")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  company       Company        @relation(fields: [tenantId], references: [id])
+  creator       User?          @relation(fields: [createdBy], references: [id])
+  employees     Employee[]
+  payrollOrders PayrollOrder[]
+
+  @@index([tenantId], name: "idx_tenant")
+  @@map("projects")
+}
+
+// 员工表
+model Employee {
+  id               BigInt         @id @default(autoincrement())
+  tenantId         BigInt         @map("tenant_id")
+  projectId        BigInt?        @map("project_id")
+  name             String         @db.VarChar(32)
+  idCard           String         @map("id_card") @db.VarChar(18)
+  phone            String         @db.VarChar(20)
+  status           EmployeeStatus @default(PENDING)
+  emergencyContact String?        @map("emergency_contact") @db.VarChar(32)
+  emergencyPhone   String?        @map("emergency_phone") @db.VarChar(20)
+  idCardFrontUrl   String?        @map("id_card_front_url") @db.VarChar(512)
+  idCardBackUrl    String?        @map("id_card_back_url") @db.VarChar(512)
+  openid           String?        @db.VarChar(128) // 微信 openid（第二阶段使用）
+  remark           String?        @db.VarChar(256)
+  createdBy        BigInt?        @map("created_by")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  company        Company         @relation(fields: [tenantId], references: [id])
+  project        Project?        @relation(fields: [projectId], references: [id])
+  creator        User?           @relation(fields: [createdBy], references: [id])
+  payrollDetails PayrollDetail[]
+
+  @@unique([tenantId, idCard], name: "idx_tenant_idcard")
+  @@index([tenantId], name: "idx_tenant")
+  @@index([tenantId, projectId], name: "idx_tenant_project")
+  @@map("employees")
+}
+
+// 企业账户表
+model Account {
+  id        BigInt        @id @default(autoincrement())
+  tenantId  BigInt        @unique @map("tenant_id")
+  balance   Decimal       @default(0) @db.Decimal(15, 2)
+  status    AccountStatus @default(ACTIVE)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  company Company @relation(fields: [tenantId], references: [id])
+
+  @@map("accounts")
+}
+
+// 充值申请单
+model RechargeOrder {
+  id                 BigInt         @id @default(autoincrement())
+  tenantId           BigInt         @map("tenant_id")
+  orderNo            String         @unique @db.VarChar(64)
+  amount             Decimal        @db.Decimal(15, 2)
+  status             RechargeStatus @default(PENDING)
+  transferVoucherUrl String?        @map("transfer_voucher_url") @db.VarChar(512)
+  remark             String?        @db.VarChar(256)
+  createdBy          BigInt?        @map("created_by")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  company      Company             @relation(fields: [tenantId], references: [id])
+  creator      User?               @relation(fields: [createdBy], references: [id])
+  transactions TransactionRecord[]
+
+  @@index([tenantId], name: "idx_tenant")
+  @@map("recharge_orders")
+}
+
+// 资金流水表
+model TransactionRecord {
+  id            BigInt               @id @default(autoincrement())
+  tenantId      BigInt               @map("tenant_id")
+  type          TransactionType      @map("transaction_type")
+  amount        Decimal              @db.Decimal(15, 2)
+  direction     TransactionDirection @map("transaction_direction")
+  beforeBalance Decimal              @map("before_balance") @db.Decimal(15, 2)
+  afterBalance  Decimal              @map("after_balance") @db.Decimal(15, 2)
+  referenceId   BigInt?              @map("reference_id")
+  referenceNo   String?              @map("reference_no") @db.VarChar(64)
+  operatorId    BigInt?              @map("operator_id")
+  remark        String?              @db.VarChar(256)
+  createdAt     DateTime             @default(now()) @map("created_at")
+
+  // Relations
+  company       Company        @relation(fields: [tenantId], references: [id])
+  operator      User?          @relation(fields: [operatorId], references: [id])
+  rechargeOrder RechargeOrder? @relation(fields: [referenceId], references: [id])
+
+  @@index([tenantId, type], name: "idx_tenant_type")
+  @@index([tenantId, createdAt], name: "idx_tenant_created")
+  @@map("transaction_records")
+}
+
+// 发薪限额配置表
+model PayrollLimitConfig {
+  id                 BigInt   @id @default(autoincrement())
+  tenantId           BigInt   @unique @map("tenant_id")
+  maxTotalAmount     Decimal  @map("max_total_amount") @db.Decimal(15, 2)
+  maxPerPersonAmount Decimal  @map("max_per_person_amount") @db.Decimal(15, 2)
+  updatedBy          BigInt?  @map("updated_by")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("payroll_limit_configs")
+}
+
+// 发薪单表
+model PayrollOrder {
+  id             BigInt             @id @default(autoincrement())
+  tenantId       BigInt             @map("tenant_id")
+  orderNo        String             @unique @db.VarChar(64)
+  projectId      BigInt             @map("project_id")
+  totalAmount    Decimal            @map("total_amount") @db.Decimal(15, 2)
+  employeeCount  Int                @map("employee_count")
+  status         PayrollOrderStatus @default(DRAFT)
+  idempotencyKey String             @unique @map("idempotency_key") @db.VarChar(128)
+  operatorId     BigInt             @map("operator_id")
+  verifiedAt     DateTime?          @map("verified_at")
+  completedAt    DateTime?          @map("completed_at")
+  remark         String?            @db.VarChar(256)
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  company  Company         @relation(fields: [tenantId], references: [id])
+  project  Project         @relation(fields: [projectId], references: [id])
+  operator User            @relation(fields: [operatorId], references: [id])
+  details  PayrollDetail[]
+
+  @@index([tenantId, status], name: "idx_tenant_status")
+  @@index([tenantId, createdAt], name: "idx_tenant_created")
+  @@map("payroll_orders")
+}
+
+// 发薪明细表
+model PayrollDetail {
+  id             BigInt              @id @default(autoincrement())
+  payrollOrderId BigInt              @map("payroll_order_id")
+  employeeId     BigInt              @map("employee_id")
+  amount         Decimal             @db.Decimal(15, 2)
+  status         PayrollDetailStatus @default(PENDING)
+  failReason     String?             @map("fail_reason") @db.VarChar(256)
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  payrollOrder PayrollOrder @relation(fields: [payrollOrderId], references: [id])
+  employee     Employee     @relation(fields: [employeeId], references: [id])
+
+  @@index([payrollOrderId], name: "idx_order")
+  @@map("payroll_details")
+}

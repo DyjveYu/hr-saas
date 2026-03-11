@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx:*)",
+      "Bash(mv:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(npm run:*)",
+      "Bash(netstat:*)",
+      "Bash(curl:*)",
+      "Bash(__NEW_LINE_2f7c3a662d63da83__ echo:*)",
+      "Bash(taskkill:*)",
+      "Bash(node:*)",
+      "Bash(npm create:*)",
+      "Bash(tasklist:*)",
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(cp:*)",
+      "Bash(ls:*)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(mv frontend:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm build:dev:*)",
+      "Bash(dir C:\\\\yu\\\\wwwwroot\\\\pro_HRM\\\\frontend\\\\src:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm build:pro:*)",
+      "Bash(pnpm prettier:*)"
+    ]
+  }
+}
