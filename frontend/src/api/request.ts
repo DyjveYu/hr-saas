@@ -28,8 +28,8 @@ request.interceptors.response.use(
       const userStore = useUserStore()
       userStore.logout()
       router.push('/login')
-      ElMessage.error('重新登录')
-   登录已过期，请 } else {
+      ElMessage.error('登录已过期，请重新登录')
+    } else {
       ElMessage.error(message)
     }
 
