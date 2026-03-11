@@ -3,20 +3,9 @@
 
 > 适用范围：平台管理端 + 企业管理端（Web）
 > 技术栈：Vue3 + Element Plus
-> 参考风格：vue-element-plus-admin（在线预览：https://element-plus-admin.cn/）
-> 参考截图：见 `docs/ui-references/` 目录，包含布局、列表页、表单弹窗的视觉参考图
 >
-> **优先级说明**：截图视觉效果 > 本文档文字描述。两者有冲突时，以截图为准。
->
-> **使用说明**：Claude Code 在开发或重构任何前端页面之前，必须先阅读本文档并查看参考截图，
+> **使用说明**：Claude Code 在开发任何前端页面之前，必须先阅读本文档，
 > 严格按照以下规范实现，不得自行发挥或简化。
->
-> ---
->
-> **框架信息**：
-> - 本项目前端基于 vue-element-plus-admin 框架（https://github.com/kailong321200875/vue-element-plus-admin）
-> - Layout 组件路径：`frontend/src/layout/`
-> - 基础样式路径：`frontend/src/styles/`
 
 ---
 
@@ -24,33 +13,35 @@
 
 ### 1.1 页面框架结构
 
-采用 vue-element-plus-admin 的标准布局：**左侧导航栏通顶，顶部栏在左侧导航栏右侧、不通顶**。
+**左侧导航栏通顶，顶部栏在左侧导航栏右侧、不通顶**。
 
 ```
 ┌──────────┬──────────────────────────────┐
 │          │  顶部栏（Header）64px          │
 │  左侧    ├──────────────────────────────┤
-│  导航栏  │  面包屑导航                   │
+│  导航栏  │  面包屑导航  40px             │
 │          ├──────────────────────────────┤
 │  220px   │                              │
 │  通顶    │  内容区（Content）            │
-│ (可折叠) │                              │
+│ (可折叠) │  padding: 24px               │
 │          │                              │
 └──────────┴──────────────────────────────┘
 ```
 
 **关键说明：**
-- 左侧导航栏：从页面最顶端延伸到最底端，高度 100vh，覆盖顶部栏左侧区域
+- 左侧导航栏：固定定位，从页面最顶端延伸到最底端，高度 100vh
 - 顶部栏：位于左侧导航栏右侧，不延伸到左侧导航栏区域
+- 内容区：跟随左侧导航栏宽度变化自动撑满剩余宽度
 - 这与传统布局（顶部栏通顶、导航栏在下方）**正好相反**，实现时注意区分
 
 ### 1.2 尺寸规范
 
 | 区域 | 尺寸 | 说明 |
 |------|------|------|
-| 顶部栏高度 | 64px | 固定，不随页面滚动，位于导航栏右侧 |
-| 左侧导航宽度（展开） | 220px | 默认展开状态，通顶显示 |
-| 左侧导航宽度（折叠） | 64px | 只显示图标，仍然通顶 |
+| 顶部栏高度 | 64px | 固定，不随页面滚动 |
+| 面包屑栏高度 | 40px | 固定，顶部栏正下方 |
+| 左侧导航宽度（展开） | 220px | 默认展开状态 |
+| 左侧导航宽度（折叠） | 64px | 只显示图标 |
 | 内容区内边距 | 24px | 四周统一 |
 | 卡片内边距 | 24px | 内容卡片内部 |
 | 表格行高 | 48px | 标准行高 |
@@ -60,8 +51,8 @@
 | 断点 | 宽度 | 处理方式 |
 |------|------|---------|
 | 桌面端 | ≥ 1280px | 左侧导航展开 |
-| 小屏桌面 | 768px ~ 1280px | 左侧导航默认折叠，只显示图标 |
-| 移动端 | < 768px | 左侧导航隐藏，顶部出现汉堡菜单按钮 |
+| 小屏桌面 | 768px ~ 1280px | 左侧导航默认折叠 |
+| 移动端 | < 768px | 左侧导航隐藏，顶部出现汉堡菜单 |
 
 ---
 
@@ -96,213 +87,171 @@
 | 常规文字 | `#606266` | 正文、表格内容 |
 | 次要文字 | `#909399` | 辅助说明、占位符 |
 | 禁用文字 | `#C0C4CC` | 禁用状态文字 |
-| 导航文字 | `#FFFFFF` | 左侧导航菜单文字 |
+| 导航默认文字 | `#C0C4CC` | 左侧导航菜单默认文字 |
+| 导航选中文字 | `#FFFFFF` | 左侧导航选中菜单文字 |
 
 ---
 
 ## 三、顶部栏规范
 
 ### 3.1 左侧区域
-- Logo 图标 + 系统名称（HR SaaS 平台）
-- 导航折叠/展开按钮（汉堡图标）
+- 导航折叠/展开按钮（`font-size: 20px`，图标：折叠用 `Fold`，展开用 `Expand`）
 
-### 3.2 右侧区域（从右到左排列）
-- 用户头像（圆形，32px）
-- 用户名（显示 real_name 或 username）
-- 下拉菜单：个人信息、修改密码、退出登录
-- 分隔线
-- 全屏切换按钮
-- 消息通知图标（预留，暂不实现）
+### 3.2 右侧区域
+- 用户头像（圆形 `el-avatar`，32px，显示姓名首字）
+- 用户名（显示 `realName` 或 `username`）
+- 下拉菜单：**仅"退出登录"一项**
 
 ### 3.3 样式要求
-- 底部有 1px 阴影线（`box-shadow: 0 1px 4px rgba(0,21,41,0.08)`）
-- 所有图标使用 Element Plus 图标库
+- 背景白色
+- 底部阴影：`box-shadow: 0 1px 4px rgba(0,21,41,0.08)`
+- 所有图标使用 `@element-plus/icons-vue`
 
 ---
 
 ## 四、左侧导航规范
 
-### 4.1 平台管理端菜单结构
+### 4.1 平台管理端菜单
 
 ```
-🏢 企业管理
-   └─ 企业列表
-👤 账号管理
-   └─ 账号列表
-💰 充值管理
-   └─ 充值记录
+企业管理  →  企业列表
+充值管理  →  充值记录
 ```
 
-### 4.2 企业管理端菜单结构
+### 4.2 企业管理端菜单
 
 ```
-📋 项目管理
-   └─ 项目列表
-👥 员工管理
-   └─ 员工列表
-💳 账户管理
-   ├─ 账户余额
-   ├─ 充值申请
-   └─ 资金流水
+项目管理  →  项目列表
+员工管理  →  员工列表
+账户管理  →  账户余额 / 充值申请 / 资金流水
 ```
 
 ### 4.3 样式要求
-- 背景色：深色（`#001529`）
-- 菜单文字：白色
-- 选中项：主色背景（`#409EFF`）
-- 悬停效果：略浅的深色背景
-- 图标和文字之间间距 8px
-- 一级菜单高度 50px，二级菜单高度 44px
+- 背景色：`#001529`
+- 默认菜单文字：`#C0C4CC`
+- 选中项：背景 `#409EFF`，文字 `#FFFFFF`
+- 悬停背景：`#002140`
+- 图标和文字间距：8px
+- 一级菜单高度：50px，二级菜单高度：44px
 - 折叠时只显示图标，悬停展示 tooltip
+- `el-menu` 设置 `border-right: none`
 
 ---
 
 ## 五、列表页规范
 
-### 5.1 页面结构（从上到下）
+### 5.1 页面结构
 
 ```
 ┌─────────────────────────────────────┐
 │ 页面标题                    [新增按钮] │  ← 页头区
 ├─────────────────────────────────────┤
-│ 搜索条件1  搜索条件2  [搜索] [重置]   │  ← 搜索区
+│ 条件1  条件2  [搜索] [重置]           │  ← 搜索区（el-card）
 ├─────────────────────────────────────┤
-│                                     │
-│  数据表格                            │  ← 表格区
-│                                     │
+│  数据表格                            │  ← 表格区（el-card）
 ├─────────────────────────────────────┤
-│              [分页器]  共100条        │  ← 分页区
+│                        [分页] 共X条  │  ← 分页区
 └─────────────────────────────────────┘
 ```
 
-### 5.2 页头区规范
-- 左侧：页面标题（16px，加粗，`#303133`）
-- 右侧：主操作按钮（新增），使用 `type="primary"`
-- 如有多个操作按钮，主操作用蓝色，次要操作用默认色
+### 5.2 页头区
+- 左侧：页面标题（`font-size: 16px`，加粗）
+- 右侧：新增按钮（`type="primary"`，图标 `Plus`）
 
-### 5.3 搜索区规范
-- 使用 `el-card` 包裹，`shadow="never"`，底部 `margin-bottom: 16px`
-- 搜索条件使用 `el-form` 行内布局（`inline`）
-- 每个搜索项宽度：文本输入 200px，下拉选择 160px，日期范围 320px
-- 搜索按钮：蓝色主色（`type="primary"`），图标为搜索图标
-- 重置按钮：默认色，图标为刷新图标
-- 两个按钮靠左排列，紧跟最后一个搜索条件
+### 5.3 搜索区
+- `el-card`，`shadow="never"`，`margin-bottom: 16px`
+- `el-form` 行内布局（`inline`）
+- 文本输入宽度 200px，下拉 160px，日期范围 320px
+- 搜索按钮：`type="primary"`，图标 `Search`
+- 重置按钮：默认色，图标 `Refresh`
 
-### 5.4 表格区规范
-- 使用 `el-card` 包裹，`shadow="never"`
-- 表格开启斑马纹（`stripe`）和边框（`border`）
-- 表头背景色：`#F5F7FA`，文字加粗
-- 操作列固定在右侧（`fixed="right"`），宽度根据按钮数量设置
-- 操作按钮使用文字按钮（`type="primary" link`），多个操作之间用 `el-divider` 分隔
-- 状态列使用 `el-tag` 展示，启用/正常用 `type="success"`，停用用 `type="danger"`，待处理用 `type="warning"`
-- 金额列右对齐，保留两位小数
+### 5.4 表格区
+- `el-card`，`shadow="never"`
+- 开启 `stripe` 和 `border`
+- 表头背景 `#F5F7FA`，文字加粗
+- 操作列 `fixed="right"`
+- 操作按钮：`type="primary" link`，多操作之间用 `|` 分隔
+- 状态列用 `el-tag`（见第八章）
+- 金额列右对齐，两位小数
 - 时间列格式：`YYYY-MM-DD HH:mm`
-- 空数据时展示默认空状态图（`el-empty`）
-- 表格加载时显示 loading（`v-loading`）
+- 空数据用 `el-empty`，描述"暂无数据"
+- 加载用 `v-loading`
 
-### 5.5 分页区规范
-- 使用 `el-pagination`，布局：`total, sizes, prev, pager, next, jumper`
-- 默认每页 10 条，可选 10、20、50 条
+### 5.5 分页区
+- `el-pagination`，layout：`total, sizes, prev, pager, next, jumper`
+- 默认每页 10 条，可选 10、20、50
 - 右对齐，`margin-top: 16px`
-- 显示总条数："共 xx 条"
 
 ---
 
-## 六、表单页规范（弹窗表单）
+## 六、表单弹窗规范
 
-### 6.1 弹窗规范
-- 使用 `el-dialog`
-- 宽度：简单表单 500px，复杂表单 680px，超复杂表单 800px
-- 标题：新增操作写"新增 + 模块名"，编辑操作写"编辑 + 模块名"
-- 关闭时清空表单数据（`@closed` 事件处理）
-- 不允许点击遮罩关闭（`close-on-click-modal="false"`）
+### 6.1 弹窗
+- `el-dialog`，简单表单 500px，复杂表单 680px
+- 标题：新增写"新增XX"，编辑写"编辑XX"
+- `close-on-click-modal="false"`
+- `@closed` 事件清空表单数据
 
-### 6.2 表单规范
-- 使用 `el-form`，`label-width="100px"`，`label-position="right"`
-- 必填字段显示红色星号（`required` 规则自动展示）
-- 输入框宽度：撑满表单内容区（`style="width: 100%"`）
-- 下拉选择、日期选择器同样撑满宽度
-- 表单项之间间距：`margin-bottom: 20px`
-- 文本域（textarea）最小高度 80px
+### 6.2 表单
+- `label-width="100px"`，`label-position="right"`
+- 所有输入控件 `width: 100%`
+- 文本域最小高度 80px
 
-### 6.3 验证规范
-- 所有必填字段配置 `required` 验证规则
-- 手机号、身份证号、邮箱配置格式验证
-- 密码字段配置长度和复杂度验证
-- 提交时触发整体表单验证（`formRef.validate()`）
-- 验证失败时定位到第一个错误字段
+### 6.3 验证
+- 必填字段配置 `required` 规则
+- 手机号、邮箱配置格式验证
+- 提交时调用 `formRef.validate()`
 
-### 6.4 底部按钮规范
+### 6.4 底部按钮
 - 右对齐
-- 取消按钮：默认色，在左
-- 确认按钮：蓝色主色（`type="primary"`），在右
-- 提交过程中确认按钮显示 loading 状态（`loading` 属性）
-- 提交成功后自动关闭弹窗并刷新列表
+- 取消（默认色）在左，确认（`type="primary"`）在右
+- 提交中确认按钮显示 `loading`
+- 成功后关闭弹窗并刷新列表
 
 ---
 
 ## 七、详情页规范
 
-### 7.1 使用场景
-查看企业详情、员工详情等只读信息展示页面。
-
-### 7.2 规范要求
-- 使用 `el-descriptions` 组件展示字段信息
-- 列数：桌面端 2-3 列，移动端 1 列
-- 标签宽度统一（`label-width="120px"`）
-- 有边框（`border`）
-- 页面顶部有返回按钮（`← 返回列表`）
-- 如需编辑，右上角放"编辑"按钮
+- `el-descriptions`，有边框（`border`），桌面端 2-3 列
+- `label-width="120px"`
+- 顶部有返回按钮（图标 `ArrowLeft` + "返回列表"）
+- 需要编辑时右上角放"编辑"按钮
 
 ---
 
 ## 八、状态标签规范
 
-所有状态展示统一使用 `el-tag`：
+统一使用 `el-tag`：
 
-| 状态 | Tag 类型 | 说明 |
+| 状态 | Tag 类型 | 颜色 |
 |------|---------|------|
-| 启用 / 正常 / 在职 / 已完成 | `success`（绿色） | 正常运行状态 |
-| 停用 / 冻结 / 离职 / 失败 | `danger`（红色） | 异常或终止状态 |
-| 待处理 / 审核中 / 待上岗 | `warning`（橙色） | 中间等待状态 |
-| 草稿 / 其他 | `info`（灰色） | 不重要或中性状态 |
+| 启用 / 正常 / 在职 / 已完成 | `success` | 绿色 |
+| 停用 / 冻结 / 离职 / 失败 | `danger` | 红色 |
+| 待处理 / 审核中 / 待上岗 | `warning` | 橙色 |
+| 草稿 / 其他中性状态 | `info` | 灰色 |
 
 ---
 
 ## 九、操作反馈规范
 
-### 9.1 成功提示
 ```javascript
+// 成功
 ElMessage.success('操作成功')
-```
-- 顶部居中弹出，2秒自动消失
 
-### 9.2 失败提示
-```javascript
+// 失败
 ElMessage.error('操作失败：' + errorMessage)
-```
-- 显示具体错误原因，3秒自动消失
 
-### 9.3 删除确认
-```javascript
-await ElMessageBox.confirm(
-  '确认删除该记录？删除后不可恢复。',
-  '删除确认',
-  {
-    confirmButtonText: '确认删除',
-    cancelButtonText: '取消',
-    type: 'warning',
-    confirmButtonClass: 'el-button--danger',
-  }
-)
-```
-- 删除操作必须有二次确认
-- 确认按钮用红色危险色
+// 删除确认
+await ElMessageBox.confirm('确认删除该记录？删除后不可恢复。', '删除确认', {
+  confirmButtonText: '确认删除',
+  cancelButtonText: '取消',
+  type: 'warning',
+  confirmButtonClass: 'el-button--danger'
+})
 
-### 9.4 启停确认
-```javascript
+// 启停确认
 await ElMessageBox.confirm(
-  `确认${status === 'ACTIVE' ? '停用' : '启用'}该记录？`,
+  `确认${isActive ? '停用' : '启用'}该记录？`,
   '操作确认',
   { confirmButtonText: '确认', cancelButtonText: '取消', type: 'warning' }
 )
@@ -316,26 +265,16 @@ await ElMessageBox.confirm(
 |------|---------|
 | 表格数据加载 | `v-loading="loading"` 加在 `el-table` 上 |
 | 按钮提交中 | `:loading="submitting"` 加在确认按钮上 |
-| 页面初始化 | 骨架屏（`el-skeleton`）或全屏 loading |
-| 图片加载 | 使用 `el-image` 组件，配置 `lazy` 懒加载 |
+| 页面初始化 | `el-skeleton` 或全屏 loading |
 
 ---
 
-## 十一、空状态规范
+## 十一、图标规范
 
-- 列表无数据时，表格区域展示 `el-empty`
-- 默认描述文字："暂无数据"
-- 如果是搜索无结果，描述文字："未找到符合条件的数据，请调整搜索条件"
+统一使用 `@element-plus/icons-vue`：
 
----
-
-## 十二、图标使用规范
-
-- 统一使用 Element Plus 图标库（`@element-plus/icons-vue`）
-- 常用图标对照：
-
-| 操作 | 图标 |
-|------|------|
+| 操作 | 图标名 |
+|------|--------|
 | 新增 | `Plus` |
 | 编辑 | `Edit` |
 | 删除 | `Delete` |
@@ -345,41 +284,40 @@ await ElMessageBox.confirm(
 | 启用 | `CircleCheck` |
 | 停用 | `CircleClose` |
 | 导出 | `Download` |
-| 上传 | `Upload` |
 | 返回 | `ArrowLeft` |
-| 设置 | `Setting` |
+| 折叠导航 | `Fold` |
+| 展开导航 | `Expand` |
 
 ---
 
-## 十三、代码规范要求
+## 十二、代码规范
 
-### 13.1 组件结构
-每个页面组件按以下顺序组织：
+### 12.1 组件结构顺序
 ```
-<template>    ← 模板
-<script setup> ← 组合式 API
-  import      ← 依赖引入
-  props/emits ← 组件通信
-  响应式数据   ← ref/reactive
-  计算属性    ← computed
-  生命周期    ← onMounted 等
-  方法        ← 业务方法
+<template>
+<script setup lang="ts">
+  // 1. import
+  // 2. props / emits
+  // 3. ref / reactive
+  // 4. computed
+  // 5. 生命周期（onMounted 等）
+  // 6. 业务方法
 </script>
-<style scoped> ← 样式（scoped）
+<style scoped>
 ```
 
-### 13.2 命名规范
-- 组件文件名：PascalCase（如 `CompanyList.vue`）
-- 变量名：camelCase（如 `companyList`）
-- 常量：UPPER_SNAKE_CASE（如 `PAGE_SIZE`）
-- CSS 类名：kebab-case（如 `.search-form`）
+### 12.2 命名规范
+- 组件文件名：PascalCase（`CompanyList.vue`）
+- 变量名：camelCase（`companyList`）
+- 常量：UPPER_SNAKE_CASE（`PAGE_SIZE`）
+- CSS 类名：kebab-case（`.search-form`）
 
-### 13.3 请求处理规范
-- 所有请求在 `try/catch` 中处理
-- 请求前设置 `loading = true`，请求结束（无论成功失败）设置 `loading = false`
-- 统一在 `catch` 块中用 `ElMessage.error()` 提示错误
+### 12.3 请求处理规范
+- 所有请求放在 `try/catch` 中
+- 请求前 `loading = true`，`finally` 块中 `loading = false`
+- `catch` 块统一用 `ElMessage.error()` 提示
 
 ---
 
-*文档版本：v1.0*
-*配套文档：requirements.md · hr-saas-technical-spec.md · hr-saas-dev-plan.md*
+*文档版本：v2.0*
+*配套文档：requirements.md · technical-spec.md · dev-plan.md · frontend-rebuild.md · troubleshooting-sop.md*
