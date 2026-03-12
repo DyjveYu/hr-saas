@@ -4,9 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a NestJS-based HR SaaS (Human Resource Management) payroll platform backend. It provides APIs for managing companies, employees, projects, and processing payroll.
+This is a full-stack HR SaaS (Human Resource Management) payroll platform:
+
+- **Backend**: NestJS-based API server
+- **Frontend**: Vue 3 + Vite + Element Plus SPA
 
 ## Common Commands
+
+### Backend
 
 ```bash
 # Install dependencies
@@ -36,11 +41,28 @@ npx prisma seed        # Run database seed
 npx prisma studio      # Open Prisma Studio UI
 ```
 
+### Frontend
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Development
+npm run dev            # Start dev server (port 5173)
+
+# Build
+npm run build          # Build for production
+npm run preview        # Preview production build
+
+# Linting
+npm run lint           # Run ESLint
+```
+
 ## Architecture
 
-### Module Structure
-
-The project follows NestJS modular architecture with feature-based modules:
+### Backend (NestJS)
 
 ```
 src/
@@ -67,7 +89,46 @@ src/
     └── test/              # Test utilities
 ```
 
-### Data Model (Prisma)
+### Frontend (Vue 3)
+
+```
+frontend/
+├── src/
+│   ├── api/               # API requests
+│   │   ├── request.ts     # Axios instance
+│   │   ├── auth.ts        # Auth APIs
+│   │   ├── company.ts     # Company APIs
+│   │   ├── project.ts    # Project APIs
+│   │   ├── employee.ts   # Employee APIs
+│   │   ├── account.ts    # Account APIs
+│   │   └── recharge.ts   # Recharge APIs
+│   ├── components/         # Reusable components
+│   ├── layout/             # Layout components
+│   │   ├── index.vue       # Main layout
+│   │   ├── Sidebar.vue     # Left navigation
+│   │   ├── Header.vue      # Top header
+│   │   └── AppMain.vue     # Content area
+│   ├── router/             # Router config
+│   │   ├── index.ts        # Routes & guards
+│   │   └── menu.ts         # Menu config
+│   ├── store/              # Pinia stores
+│   │   └── user.ts         # User store
+│   ├── styles/             # Global styles
+│   │   └── global.css
+│   ├── views/              # Page components
+│   │   ├── login/          # Login page
+│   │   ├── dashboard/      # Dashboard
+│   │   ├── company/         # Company management
+│   │   ├── recharge/       # Recharge management
+│   │   ├── project/        # Project management
+│   │   ├── employee/       # Employee management
+│   │   └── account/        # Account management
+│   ├── App.vue
+│   └── main.ts
+└── vite.config.ts
+```
+
+## Data Model (Prisma)
 
 Key entities in `prisma/schema.prisma`:
 - **User** - Authentication with roles (PLATFORM_ADMIN, COMPANY_ADMIN)
@@ -79,7 +140,7 @@ Key entities in `prisma/schema.prisma`:
 - **TransactionRecord** - Financial ledger
 - **PayrollOrder/PayrollDetail** - Payroll processing
 
-### API Design
+## API Design
 
 - All APIs prefixed with `/api`
 - Swagger docs available at `/api/docs`
@@ -88,7 +149,7 @@ Key entities in `prisma/schema.prisma`:
 - Global response interceptor wraps responses in `{ code, message, data }` format
 - BigInt values serialized as strings (JSON compatibility)
 
-### Configuration
+## Configuration
 
 Environment variables in `.env`:
 - `DATABASE_URL` - MySQL connection
@@ -98,7 +159,7 @@ Environment variables in `.env`:
 - `PORT` - Server port (default 3000)
 - `CORS_ORIGIN` - CORS allowed origins
 
-### Key Patterns
+## Key Patterns
 
 1. **Service Layer**: Business logic in `*.service.ts` files
 2. **DTOs**: Input validation in `dto/*.dto.ts` using class-validator

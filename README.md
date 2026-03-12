@@ -1,98 +1,84 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# HR SaaS 发薪系统
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+企业级人力资源薪资管理平台。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 技术栈
 
-## Description
+- **后端**: NestJS + Prisma + MySQL + Redis
+- **前端**: Vue 3 + Vite + Pinia + Element Plus
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 项目结构
 
-## Project setup
-
-```bash
-$ npm install
+```
+pro_HRM/
+├── src/                    # NestJS 后端源码
+│   ├── modules/            # 功能模块
+│   ├── common/             # 公共组件
+│   └── prisma/             # 数据库模型
+├── frontend/               # Vue 3 前端
+│   ├── src/
+│   │   ├── api/            # API 接口
+│   │   ├── components/     # 组件
+│   │   ├── layout/         # 布局
+│   │   ├── router/         # 路由
+│   │   ├── store/          # 状态管理
+│   │   └── views/          # 页面
+│   └── vite.config.ts
+├── prisma/                 # Prisma schema
+└── docs/                   # 开发文档
 ```
 
-## Compile and run the project
+## 快速开始
+
+### 后端启动
 
 ```bash
-# development
-$ npm run start
+# 安装依赖
+npm install
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# 启动开发服务器
+npm run start:dev
 ```
 
-## Run tests
+后端服务运行在 http://localhost:3000
+
+### 前端启动
 
 ```bash
-# unit tests
-$ npm run test
+cd frontend
 
-# e2e tests
-$ npm run test:e2e
+# 安装依赖
+npm install
 
-# test coverage
-$ npm run test:cov
+# 启动开发服务器
+npm run dev
 ```
 
-## Deployment
+前端服务运行在 http://localhost:5173
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 功能模块
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| 模块 | 说明 |
+|------|------|
+| 企业管理 | 平台管理员管理入驻企业 |
+| 充值管理 | 平台管理员确认充值到账 |
+| 项目管理 | 企业管理员管理施工项目 |
+| 员工管理 | 企业管理员管理项目工人 |
+| 账户管理 | 企业管理员查看余额、充值、流水 |
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## 角色权限
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- **PLATFORM_ADMIN**: 平台管理员 - 管理系统所有企业
+- **COMPANY_ADMIN**: 企业管理员 - 管理本企业项目/员工/账户
 
-## Resources
+## API 文档
 
-Check out a few resources that may come in handy when working with NestJS:
+启动后端后访问: http://localhost:3000/api/docs
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 开发文档
 
-## Support
+详细开发规范见 `docs/` 目录:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `frontend-rebuild.md` - 前端重建指南
+- `ui-design-spec.md` - UI 设计规范
+- `troubleshooting-sop.md` - 问题排查手册
