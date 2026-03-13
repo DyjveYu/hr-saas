@@ -35,4 +35,4 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return { token, userInfo, isLoggedIn, setToken, setUserInfo, logout }
-}, { persist: false })
+})

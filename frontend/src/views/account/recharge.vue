@@ -36,7 +36,8 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { ElMessage, FormInstance } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import type { FormInstance } from 'element-plus'
 import { createRecharge } from '@/api/recharge'
 
 const formRef = ref<FormInstance>()

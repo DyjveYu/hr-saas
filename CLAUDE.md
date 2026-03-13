@@ -166,3 +166,10 @@ Environment variables in `.env`:
 3. **Guards**: Role-based access control via `roles.guard.ts`
 4. **Interceptors**: Global response wrapping and logging
 5. **Prisma Transactions**: Use `prisma.$transaction` for atomic operations
+
+## 开发环境说明
+
+- 操作系统：Windows，PowerShell
+- Git 认证：SSH 方式，本地 SSH key 已配置并添加到 GitHub
+- 远端仓库：git@github.com:DyjveYu/hr-saas.git
+- 推送时统一使用 SSH 地址，不使用 HTTPS，不需要 Token

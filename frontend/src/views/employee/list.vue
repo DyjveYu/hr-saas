@@ -161,7 +161,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import type { FormInstance } from 'element-plus'
 import { getEmployeeList, createEmployee, updateEmployee, changeEmployeeStatus, deleteEmployee, assignProject, type Employee } from '@/api/employee'
 import { getProjectList } from '@/api/project'
 
